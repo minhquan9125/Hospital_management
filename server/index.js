@@ -26,6 +26,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Debug: Log environment variables
+console.log("MONGO_URI =", process.env.MONGO_URI);
+console.log("JWT_SECRET =", process.env.JWT_SECRET ? "✓ Set" : "✗ Not set");
+console.log("PORT =", PORT);
+
 // for __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
