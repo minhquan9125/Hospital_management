@@ -38,16 +38,80 @@ const deleteById = (Model) => async (req, res) => {
 };
 
 // ---------- Doctors ----------
+/**
+ * Create new doctor
+ * POST /api/doctors/create
+ * 
+ * Request body: {name, specialization, availability, photoUrl, department, departmentId}
+ * 
+ * Response codes:
+ *  0: Success (no error)
+ *  1: Missing required data
+ *  2: Duplicate doctor (already exists)
+ *  3: Database error
+ *  4: Invalid input format
+ */
 export const createDoctor = async (req, res) => {
   try {
-    const { name, specialization, availability, photoUrl } = req.body;
+    const { name, specialization, availability, photoUrl, department, departmentId } = req.body;
+
+    // Error Code 1: Check missing required fields
     if (!name || !specialization || !availability || !photoUrl) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ 
+        code: 1, 
+        message: "Missing required data (name, specialization, availability, photoUrl)",
+        success: false 
+      });
     }
 
-    const newDoctor = new Doctor({ name, specialization, availability, photoUrl });
+    // Validate input format
+    if (typeof name !== 'string' || name.trim().length === 0) {
+      return res.status(400).json({ 
+        code: 4, 
+        message: "Invalid input format: name must be non-empty string",
+        success: false 
+      });
+    }
+
+    // Check for duplicate doctor (by name and specialization)
+    const existingDoctor = await Doctor.findOne({ name, specialization });
+    if (existingDoctor) {
+      return res.status(409).json({ 
+        code: 2, 
+        message: "Doctor already exists with same name and specialization",
+        success: false 
+      });
+    }
+
+    // Create new doctor
+    const newDoctor = new Doctor({ 
+      name: name.trim(), 
+      specialization, 
+      availability, 
+      photoUrl,
+      department: department || "General",
+      departmentId: departmentId || "GEN001"
+    });
+
     const saved = await newDoctor.save();
-    res.status(201).json(saved);
+
+    // Error Code 0: Success
+    return res.status(201).json({ 
+      code: 0, 
+      message: "Doctor created successfully",
+      success: true,
+      data: saved 
+    });
+  } catch (err) {
+    console.error("Error creating doctor:", err);
+    // Error Code 3: Database error
+    return res.status(500).json({ 
+      code: 3, 
+      message: "Database error: " + err.message,
+      success: false 
+    });
+  }
+};
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

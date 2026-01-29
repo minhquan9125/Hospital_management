@@ -4,7 +4,8 @@ import {
   downloadDoctorsJSON,
   getDoctorsJSON,
   getDoctorsByDepartment,
-  getDoctorsAuthenticatedJSON
+  getDoctorsAuthenticatedJSON,
+  createDoctor
 } from "../controllers/adminController.js";
 import isAuthenticated from "../middleware/isAuthenticated.js";
 
@@ -18,6 +19,9 @@ router.get("/department/:departmentId", getDoctorsByDepartment);
 
 // API 3: Get all doctors with authentication (requires token)
 router.get("/authenticated", isAuthenticated, getDoctorsAuthenticatedJSON);
+
+// API 4: Create new doctor (requires token) - POST
+router.post("/create", isAuthenticated, createDoctor);
 
 // Existing routes
 router.get("/", getAllDoctors);
