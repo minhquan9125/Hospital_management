@@ -30,7 +30,7 @@ const app = express();
 
 // Environment validation - fail fast if missing critical vars
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || "default_jwt_secret_dev_only";
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || "development";
 
@@ -38,18 +38,12 @@ console.log("📋 Environment:");
 console.log("  NODE_ENV =", NODE_ENV);
 console.log("  PORT =", PORT);
 console.log("  MONGODB_URI =", MONGODB_URI ? "✓ Set" : "❌ MISSING");
-console.log("  JWT_SECRET =", JWT_SECRET ? "✓ Set" : "❌ MISSING");
+console.log("  JWT_SECRET =", process.env.JWT_SECRET ? "✓ Set" : "⚠️  Using default (set for production)");
 
 // Fail fast if critical vars missing
 if (!MONGODB_URI) {
   console.error("❌ ERROR: MONGODB_URI environment variable is not set!");
   console.error("   Set either MONGODB_URI or MONGO_URI in your .env or Railway Variables");
-  process.exit(1);
-}
-
-if (!JWT_SECRET) {
-  console.error("❌ ERROR: JWT_SECRET environment variable is not set!");
-  console.error("   Set JWT_SECRET in your .env or Railway Variables");
   process.exit(1);
 }
 
