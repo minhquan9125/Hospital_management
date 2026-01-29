@@ -2,11 +2,8 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy server files
-COPY server/package*.json ./server/
-WORKDIR /app/server
-
-# Install dependencies
+# Copy package files
+COPY server/package*.json ./
 RUN npm install
 
 # Copy server source
