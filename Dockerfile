@@ -1,12 +1,14 @@
 FROM node:18-alpine
 
-WORKDIR /app/server
+WORKDIR /app
 
-# Copy package files
+# Copy server package files
 COPY server/package*.json ./
+
+# Install dependencies
 RUN npm install
 
-# Copy server source
+# Copy all server files
 COPY server/ .
 
 # Expose port
