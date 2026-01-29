@@ -112,10 +112,6 @@ export const createDoctor = async (req, res) => {
     });
   }
 };
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
 export const getAllDoctors = async (req, res) => {
   try {
