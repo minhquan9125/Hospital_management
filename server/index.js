@@ -21,15 +21,37 @@ import contactRoutes from "./routes/contactRoutes.js";
 import emergencyRoutes from "./routes/emergencyRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
 
-dotenv.config();
+// Load dotenv only in development, not in production (Railway sets vars directly)
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-// Debug: Log environment variables
-console.log("MONGO_URI =", process.env.MONGO_URI);
-console.log("JWT_SECRET =", process.env.JWT_SECRET ? "✓ Set" : "✗ Not set");
-console.log("PORT =", PORT);
+// Environment validation - fail fast if missing critical vars
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
+const JWT_SECRET = process.env.JWT_SECRET;
+const PORT = process.env.PORT || 5000;
+const NODE_ENV = process.env.NODE_ENV || "development";
+
+console.log("📋 Environment:");
+console.log("  NODE_ENV =", NODE_ENV);
+console.log("  PORT =", PORT);
+console.log("  MONGODB_URI =", MONGODB_URI ? "✓ Set" : "❌ MISSING");
+console.log("  JWT_SECRET =", JWT_SECRET ? "✓ Set" : "❌ MISSING");
+
+// Fail fast if critical vars missing
+if (!MONGODB_URI) {
+  console.error("❌ ERROR: MONGODB_URI environment variable is not set!");
+  console.error("   Set either MONGODB_URI or MONGO_URI in your .env or Railway Variables");
+  process.exit(1);
+}
+
+if (!JWT_SECRET) {
+  console.error("❌ ERROR: JWT_SECRET environment variable is not set!");
+  console.error("   Set JWT_SECRET in your .env or Railway Variables");
+  process.exit(1);
+}
 
 // for __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -51,17 +73,25 @@ app.get("/", (req, res) => {
   res.send("Backend is running successfully!");
 });
 
-// MongoDB connection
-const mongoURI = process.env.MONGO_URI;
-console.log("Connecting to MongoDB URI:", mongoURI);
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({ ok: true, env: NODE_ENV, timestamp: new Date().toISOString() });
+});
 
+// MongoDB connection
+console.log("\n🔗 Connecting to MongoDB...");
 mongoose
-  .connect(mongoURI, {
+  .connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch((err) => console.error(" MongoDB Error:", err));
+  .then(() => {
+    console.log("✅ MongoDB Connected successfully!");
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB Connection Error:", err.message);
+    process.exit(1);
+  });
 
 // Static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -137,5 +167,8 @@ app.post("/api/surgery/book", upload.single("prescription"), async (req, res) =>
 
 // Start server
 app.listen(PORT, () => {
-  console.log("Server is running on port", PORT);
+  console.log(`\n🚀 Server is running on port ${PORT}`);
+  console.log(`📍 Environment: ${NODE_ENV}`);
+  console.log(`🔗 Base URL: http://localhost:${PORT}`);
+  console.log(`💚 Health check: http://localhost:${PORT}/health`);
 });
